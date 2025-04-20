@@ -23,6 +23,39 @@ app.get('/test-db', async (req, res) => {
   }
 });
 
+
+// --- New Routes to Create and Fetch Posts ---
+
+// MongoDB Schema for Post
+const postSchema = new mongoose.Schema({
+  content: String,
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Post = mongoose.model('Post', postSchema);
+
+// Route to create a post
+app.post('/create-post', async (req, res) => {
+  try {
+    const { content } = req.body;
+    const newPost = new Post({ content });
+    await newPost.save();
+    res.status(201).json(newPost);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create post', details: error.message });
+  }
+});
+
+// Route to get all posts
+app.get('/posts', async (req, res) => {
+  try {
+    const posts = await Post.find();
+    res.json(posts);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch posts', details: error.message });
+  }
+});
+
 mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => app.listen(process.env.PORT || 5000, () => console.log('Server running')))
   .catch(err => console.error(err));
